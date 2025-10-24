@@ -1,6 +1,7 @@
 baseURL = 'https://example.org/'
 languageCode = 'fr-fr'
-title = 'GdDR SciLog'    
+title = 'GdR - SDL'
+    
 
 
 [module]
