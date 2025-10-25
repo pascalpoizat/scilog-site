@@ -13,7 +13,11 @@ body {
   font-variant-alternates: normal;
   font-size-adjust: none;
   font-kerning: auto;
-  font-optical-sizing: auto;}
+  font-optical-sizing: auto;
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  font-variant-position: normal;
+  font-stretch: normal;}
 
 a {
   text-decoration: none;
@@ -221,7 +225,7 @@ a:hover {
 .site-bg .site-container .body-header .container-titreDescription .description-titre {
   color: grey;
   font-style: italic;
-  font-size: 16px;
+  font-size: 15px;
   padding-top: 5px;
 }
 
