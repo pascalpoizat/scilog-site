@@ -5,14 +5,17 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   THEME_URL: "github.com/adityatelange/hugo-PaperMod"
 
-test:  # builds and tests your site
-  script:
-    - hugo
-  rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+# test:  # builds and tests your site
+#   script:
+#     - hugo
+#   rules:
+#     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
 
 create-pages:  # a user-defined job that builds your pages and saves them to the specified path.
-  run:
+  stage: deploy
+  tags:
+    - pages
+  script:
     - hugo
   pages: true  # specifies that this is a Pages job
   artifacts:
@@ -21,4 +24,4 @@ create-pages:  # a user-defined job that builds your pages and saves them to the
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_REF_PROTECTED == "true"
-environment: production
+  environment: production
