@@ -8,11 +8,14 @@ default:
   before_script:
     - hugo version
     - hugo mod get -u $THEME_URL
+    - pwd
+    - ls
+
 
 # Use everywhere except on the default branch
 test:
   script:
-    - hugo --minify
+    - hugo
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
 
