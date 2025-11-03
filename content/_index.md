@@ -1,7 +1,7 @@
 ---
 title: Bienvenue sur le site du GDR SciLog
 type: news
-date: "2024-06-23T09:46:44Z"
+date: "2025-11-03T18:53:00Z"
 draft: false
 ---
 
@@ -18,4 +18,4 @@ Vous trouverez sur ce site les dernières actualités relatives au {{% scilog %}
 
 
 
-Dans le menu, vous trouverez des liens qui vous présentent le {{% scilog %}}, son [organisation](/bienvenue-site-sdl/organisation/), ses [principaux groupes thématiques](/group/), les [défis scientifiques](/defi/) qu'il aborde, ainsi que des archives sur les journées nationales passées.
+Dans le menu, vous trouverez des liens qui vous présentent le {{% scilog %}}, son [organisation](/bienvenue-site-scilog/organisation/), ses [principaux groupes thématiques](/group/), les [défis scientifiques](/defi/) qu'il aborde, ainsi que des archives sur les journées nationales passées.
