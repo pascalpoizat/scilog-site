@@ -1,13 +1,19 @@
-image: klakegg/hugo:ext-alpine  # More reliable Hugo Docker image
-
 variables:
   HUGO_ENV: production
   THEME_URL: "github.com/gdr-sdl/theme"
+  CI_PROJECT_DIR: "/builds/gdr-scilog/site"
 
 default:
   before_script:
+    - echo "Listing files:"
+    - ls -la
     - hugo version
-    - git config --global --add safe.directory $CI_PROJECT_DIR  # Fix potential git safety issues
+    - git config --global --add safe.directory $CI_PROJECT_DIR
+    - |
+      if [ ! -f "hugo.toml" ] && [ ! -f "config.toml" ]; then
+        echo "Error: No Hugo config file found"
+        exit 1
+      fi
     - hugo mod get -u $THEME_URL
     - hugo mod tidy
     - hugo mod vendor
@@ -15,7 +21,7 @@ default:
 # Use everywhere except on the default branch
 test:
   script:
-    - hugo --minify
+    - hugo --minify --config hugo.toml
   rules:
     - if: $CI_COMMIT_REF_NAME != $CI_DEFAULT_BRANCH
 
