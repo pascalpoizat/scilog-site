@@ -1,4 +1,4 @@
-image: hugomods/hugo:ext-alpine  # Use a more specific version if needed
+image: klakegg/hugo:ext-alpine  # More reliable Hugo Docker image
 
 variables:
   HUGO_ENV: production
@@ -6,8 +6,10 @@ variables:
 
 default:
   before_script:
+    - echo "CI_PROJECT_DIR: $CI_PROJECT_DIR"
+    - echo "Current directory: $(pwd)"
     - hugo version
-    - git config --global --add safe.directory /builds/gdr-scilog/site  # Fix potential git safety issues
+    - git config --global --add safe.directory $CI_PROJECT_DIR  # Fix potential git safety issues
     - hugo mod get -u $THEME_URL
     - hugo mod tidy
     - hugo mod vendor
