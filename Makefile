@@ -19,6 +19,15 @@ clean:
 site:
 	hugo
 
+synchro-pull:
+	git pull origin main
+	git pull github main
+
+synchro-push:
+	git push origin main
+	git push github main
+	git remote update
+
 deploy: public/index.html
 	@echo "========================================"
 	@echo "==> Deploy updates "
