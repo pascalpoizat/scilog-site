@@ -1,4 +1,4 @@
-baseURL = "https://jmbruel.github.io/scilog-site"
+baseURL = "https://gdr-scilog.cnrs.fr/"
 languageCode = 'fr-fr'
 title = 'GdR SciLog'
 theme = "mon-theme"

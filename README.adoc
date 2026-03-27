@@ -3,7 +3,7 @@
 :repo: https://src.koda.cnrs.fr/gdr-scilog/private/site.git/
 :scilog: https://gdr-scilog.cnrs.fr/[GDR SciLog]
 :ins2i: http://www.cnrs.fr/ins2i/[CNRS Sciences Informatiques]
-:mygdr: https://mygdr.hosted.lip6.fr/accueilGDR/7/10
+:mygdr: 
 
 image::static/assets/logo-scilog.png[Logo du GDR SciLog]
 
