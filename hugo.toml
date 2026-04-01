@@ -1,6 +1,6 @@
 baseURL = "https://gdr-scilog.cnrs.fr/"
 languageCode = 'fr-fr'
-title = 'GdR SciLog'
+title = 'GDR SciLog'
 theme = "mon-theme"
 canonifyURLs = true
 enableRobotsTXT = true
