@@ -73,22 +73,11 @@ La réalisation d’instances de jumeau numérique sera un moyen de valider les 
 Projets
 – Le nombre d’appels à projets concernant les jumeaux numériques augmente. Le GT peut être une instance d’animation, permettant la mise en commun de nos forces et de nos efforts.
 
-## Équipes (non exhaustif)
+## Précédents évènements
 
-* DISP Lab (Jannik Laval, Vincent Cheutet)
-* P4S du Lab-STICC (Antoine Beugnard, Sylvain Guérin, Fabien Dagnat, Salvador Martinez, Jean-Christophe Bach, Gwendal Beaumont, Eric Cariou, Fabien Dagnat, Salvador Martinez)
-* Shaker du Lab-STICC (Nathalie Julien)
-* IRISA / DiverSE (Benoit Combemale, Jean-Marc Jézéquel, Quentin Perez, Djamel Khelladi)
-* SM@RT / IRIT (Jean-Michel Bruel, Nan Messe, Sophie Ebersold et Benoit Combemale)
-* EuroMov Digital Health in Motion / IMT Mines Alès (Christelle Urtado, Sylvain Vauttier)
-* LSR / IMT Mines Alès (Souad Rabah-Chaniour)
-* VULCAIN Ingénierie (Fahima Babas)
-* IRT SystemX (Stephen Creff, Abdelhadi Belfadel, Jean-Patrick Brunet)
-* CERISN, Mines Douai (Noury Bouraqadi)
-* CEA/List (Marcos Didonet Del Fabro, Sébastien Gérard, Ariane Piel)
-* Opal Research (Jérémy Patrix)
-* LIP6/MoVe (Jacques Malenfant)
-* LIRMM (Djamel Seriai)
-* INRIA (Pascale Vicat-Blanc)
-* LISTIC (Flavien Vernier)
-* RED (Amine Hamri et Eric Ramat)
+- [17/03/2026 - soirée Jumeaux Numériques](./20260317/20260317_soiree_JJN)
+
+- [11/12/2025 - 2ème journée Jumeaux Numériques](https://gdrgpl.myxwiki.org/xwiki/bin/view/Main/GTs/action%20Jumeaux%20Num%C3%A9riques/)
+
+- [14/11/2024 - 1ère journée Jumeaux Numériques](https://gdrgpl.myxwiki.org/xwiki/bin/view/Main/GTs/action%20Jumeaux%20Num%C3%A9riques/Journ%C3%A9e20241114/)
+

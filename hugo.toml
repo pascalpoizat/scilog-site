@@ -1,10 +1,11 @@
-baseURL = "https://jmbruel.github.io/scilog-site"
+baseURL = "https://gdr-scilog.cnrs.fr"
 languageCode = 'fr-fr'
-title = 'GdR SciLog'
+title = 'GDR SciLog'
 theme = "mon-theme"
 canonifyURLs = true
 enableRobotsTXT = true
-copyright = "&copy; {currentYear} All right reserved contact@scilog.fr"
+copyright = "&copy; {currentYear} All right reserved contact@scilog.fr -- Last update {{ .Date }}"
+enableEmoji = true
 
 [taxonomies]
   archive = "archives"
@@ -16,3 +17,14 @@ copyright = "&copy; {currentYear} All right reserved contact@scilog.fr"
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
+
+[params]
+  codir1name = "Jean-Michel Bruel"
+  codir2name = "Pascal Poizat"
+  codir3name = "Nicolas Magaud"
+  CSpres = "Florence Maraninchi"
+  ri = "Emmanuel Gaudin"
+  pes = "Sophie Chabridon"
+  com = "Yves Ledru"
+  school = "Daniel Le Berre"
+  these = "Sandrine Blazy"

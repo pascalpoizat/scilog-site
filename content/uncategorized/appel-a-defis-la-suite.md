@@ -6,7 +6,7 @@ draft: false
 categories:
 - An2025
 - "Défis2025"
-- SDL2025
+- GPL2025
 archives: ["2025-06"]
 ---
 

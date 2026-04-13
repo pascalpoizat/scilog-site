@@ -5,8 +5,7 @@ date: "2025-07-14T12:53:07Z"
 draft: false
 categories:
 - An2025
-- SDL2025
-- SDL2026
+- GPL2025
 archives: ["2025-07"]
 ---
 

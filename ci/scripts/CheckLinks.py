@@ -1,6 +1,8 @@
 import os
+import posixpath
 import re
 import json
+from enum import Enum
 from urllib import request
 from urllib.parse import urlparse
 
@@ -10,8 +12,20 @@ from urllib.parse import urlparse
 # Si True on vérifie seulement les domaines des URLs externes
 FAST_CHECK = True
 
+
+# Type de vérification des liens
+class CheckLinkType(Enum):
+    INTERNAL = "Internal"
+    EXTERNAL = "External"
+    BOTH     = "Both"
+
+
+# Mode de vérification des liens
+CHECK_LINK_TYPE = CheckLinkType.BOTH
+
 # Cache des domaines déjà testés en mode FAST_CHECK
 domain_cache = {}
+
 
 # ======================================== #
 # ==== Récupération des liens ignorés ==== #
@@ -19,17 +33,19 @@ domain_cache = {}
 def GetIgnoredLinks():
     """
     Récupère la liste des liens à ignorer dans le fichier ignoredlinks.json
-    
+
     Returns :
         list : la liste des liens à ignorer
     """
     try:
-        with open('.\\ci\\scripts\\ignoredlinks.json', 'r', encoding='utf-8') as f:
+        ignoredFile = os.path.join('ci', 'scripts', 'ignoredlinks.json')
+        with open(ignoredFile, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
         return []
 
 ignored_links = GetIgnoredLinks()
+
 
 # ================================ #
 # ==== Recherche des fichiers ==== #
@@ -39,13 +55,12 @@ def FindAllMarkdown(dossierPath):
     Permet de parcourir le dossier donné de manière recursive pour trouver tous les fichiers markdown
 
     Args :
-        dossier/ :  le chemin du dossier à parcourir
+        dossierPath : le chemin du dossier à parcourir
 
     Returns :
         list : la liste des chemins complets des fichiers Markdown trouvés
     """
     markdowns = []
-
 
     # On parcourt tous les directory et fichiers enfants
     for racine, dirs, fichiers in os.walk(dossierPath):
@@ -54,6 +69,7 @@ def FindAllMarkdown(dossierPath):
             # Si le fichier se termine par un .md alors on l'ajoute à la liste
             if fichier.endswith('.md'):
                 markdowns.append(os.path.join(racine, fichier))
+
     return markdowns
 
 
@@ -70,14 +86,13 @@ def GetLinks(fichierPath):
     Returns :
         list : la liste des tuples (url, texte_affichage, fichier_source)
     """
-    
     liens = []
-    try:
 
+    try:
         # On ouvre le fichier en mode lecture
         with open(fichierPath, 'r', encoding='utf-8') as fichier:
             contenu = fichier.read()
-
+            
         # On cherche les liens markdown
         # Type : [texte](url)
         markdownLinks = re.findall(r'\[([^\]]*)\]\(([^)]+)\)', contenu)
@@ -103,43 +118,225 @@ def GetLinks(fichierPath):
 
     return liens
 
+
+# ========================== #
+# ==== Helpers internes ==== #
+# ========================== #
+
+def CleanInternalLink(lien):
+    """
+    Permet de nettoyer un lien interne en retirant query string et ancre
+
+    Args :
+        lien : le lien brut
+
+    Returns :
+        le lien nettoyé
+    """
+    
+    # On retire le query string puis l'ancre
+    return lien.split('?', 1)[0].split('#', 1)[0].strip()
+
+
+def LooksLikePageLink(lien):
+    """
+    Permet de déterminer si le lien interne ressemble à une URL de page Hugo
+
+    Args :
+        lien : le lien interne nettoyé
+
+    Returns :
+        True si c'est un lien de page sinon False
+    """
+    
+    if not lien:
+        return False
+
+    # oN assume qu'un lien terminant par / est forcément une page
+    if lien.endswith('/'):
+        return True
+
+    # Si le dernier segment n'a pas d'extension, c'est une page Hugo
+    dernierSegment = lien.rstrip('/').split('/')[-1]
+    
+    return os.path.splitext(dernierSegment)[1] == ''
+
+
+def GetSourcePageDir(fichier_source):
+    """
+    Permet de calculer le dossier d'URL Hugo correspondant au fichier source
+
+    Args :
+        fichier_source : fichier markdown d'origine
+
+    Returns :
+        dossier d'URL ou None si hors content/
+    """
+    
+    contentRoot = os.path.abspath('content')
+    sourceAbs   = os.path.abspath(fichier_source)
+
+    try:
+        # Chemin relatif depuis la racine content/
+        rel = os.path.relpath(sourceAbs, contentRoot)
+    except ValueError:
+        return None
+
+    # Le fichier est en dehors de content/
+    if rel.startswith('..'):
+        return None
+
+    # Conversion en style posix pour le traitement de l'URL
+    relPosix = rel.replace('\\', '/')
+    base      = posixpath.basename(relPosix)
+    dossier   = posixpath.dirname(relPosix)
+
+    if base in ('_index.md', 'index.md'):
+        return dossier
+
+    if base.endswith('.md'):
+        slug = base[:-3]
+        return posixpath.join(dossier, slug) if dossier else slug
+
+    return dossier
+
+
+def ResolveToPagePath(lien, fichier_source):
+    """
+    Permet de transformer un lien interne en chemin d'URL Hugo relatif à content/
+
+    Args :
+        lien : le lien interne nettoyé
+        fichier_source : fichier markdown d'origine
+
+    Returns :
+        chemin d'URL relatif à content/ ou None si non résolu
+    """
+    
+    # Lien absolu
+    if lien.startswith('/'):
+        
+        # On retire le slash initial
+        return lien.lstrip('/')
+
+    sourcePageDir = GetSourcePageDir(fichier_source)
+    if sourcePageDir is None:
+        return None
+
+    # On résout le lien relatif depuis le dossier de la page source    
+    baseDir = sourcePageDir if sourcePageDir else '.'
+    normalized = posixpath.normpath(posixpath.join(baseDir, lien))
+
+    # Le lien sort de l'arborescence content/
+    if normalized.startswith('..'):
+        return None
+
+    return '' if normalized == '.' else normalized
+
+
+def PageExists(pagePath):
+    """
+    Permet de vérifier l'existence d'une page Hugo depuis son chemin URL
+
+    Args :
+        pagePath : chemin URL relatif à content/
+
+    Returns :
+        True si une page Hugo correspond sinon False
+    """
+    contentRoot = os.path.abspath('content')
+    cleaned     = pagePath.strip('/').strip()
+
+    # On part sur le principe qu'une page Hugo ne sera définie par un _index.md ou index.md dans un dossier, ou par un fichier .md portant le même nom que la page
+    if cleaned:
+        candidates = [
+            os.path.join(contentRoot, cleaned, '_index.md'),
+            os.path.join(contentRoot, cleaned, 'index.md'),
+            os.path.join(contentRoot, f"{cleaned}.md"),
+        ]
+    else:
+        # Racine du site
+        candidates = [os.path.join(contentRoot, '_index.md')]
+
+    return any(os.path.exists(candidate) for candidate in candidates)
+
+
 # ========================================= #
 # ==== Vérification des liens internes ==== #
 # ========================================= #
-def InternalVerification(lien, fichier_source):
+
+def IsInternalPageLink(lien, fichier_source):
     """
-    Permet de vérifier si un lien vers un fichier interne existe bien
+    Permet de déterminer si un lien correspond à une page du site Hugo
 
     Args :
-        lien : le chemin relatif à vérifier
-        fichier_source : le fichier markdown qui contient ce lien
+        lien : lien brut
+        fichier_source : fichier markdown d'origine
 
     Returns :
-        bool : True si le fichier existe sinon False
+        estPageInterne, pagePath
     """
+    if not lien:
+        return False, None
 
-    # Si le lien est un anchor link, lien relatif ou address mail il est automatiquement validé
-    if lien.startswith('#') or '@' in lien or '?' in lien or lien in ignored_links:
+    # On considère que les liens commençant par http://, https://, mailto: ou tel: ne sont pas des liens de page Hugo donc liens externes (ou non internes)
+    if lien.startswith(('http://', 'https://', 'mailto:', 'tel:')):
+        return False, None
+
+    cleaned = CleanInternalLink(lien)
+
+    # Sans extension ni slash final ce n'est pas une page Hugo
+    if not LooksLikePageLink(cleaned):
+        return False, None
+
+    pagePath = ResolveToPagePath(cleaned, fichier_source)
+    
+    # Le lien pointe en dehors de content/
+    if pagePath is None:
+        return False, None
+
+    return True, pagePath
+
+
+def InternalVerification(lien, fichier_source):
+    """
+    Permet de vérifier l'existence d'un lien interne : page Hugo ou asset/fichier local
+
+    Args :
+        lien : lien brut
+        fichier_source : le fichier markdown d'origine
+
+    Returns :
+       bool : True si le fichier existe sinon False
+    """
+    
+    ## Ancre seule ## 
+    # On sort pas du document courant, considérée valide
+    if lien.startswith('#') or lien in ignored_links:
         return True
-    
-    # Si le lien commence par /
-    # il est relatif à la racine du projet
-    if lien.startswith('/'):
-        cheminAbsolu = lien[1:]
+
+    ## Lien de page Hugo ##
+    # On vérifie via l'arborescence content/
+    estPageInterne, pagePath = IsInternalPageLink(lien, fichier_source)
+    if estPageInterne:
+        return PageExists(pagePath)
+
+    ## Asset ou fichier local ##
+    # On vérifie l'existence physique du fichier
+    cleaned = CleanInternalLink(lien)
+    if cleaned.startswith('/'):
+        cheminAbsolu = cleaned.lstrip('/')
     else:
-
-        # Sinon il est relatif au dossier du fichier source
         dossierSource = os.path.dirname(fichier_source)
-        cheminAbsolu = os.path.join(dossierSource, lien)
-    
-    # On normalise le chemin pour résoudre les ../ et ./
-    cheminAbsolu = os.path.normpath(cheminAbsolu)
-    
-    return os.path.exists(cheminAbsolu)
+        cheminAbsolu  = os.path.join(dossierSource, cleaned)
 
-# ================================= #
-# ==== Récupération du domaine ==== #
-# ================================= #
+    return os.path.exists(os.path.normpath(cheminAbsolu))
+
+
+# ========================================= #
+# ==== Vérification des liens externes ==== #
+# ========================================= #
+
 def GetDomainOnly(url):
     """
     Récupère le domaine d'un URL (par exemple https://github.com)
@@ -151,26 +348,42 @@ def GetDomainOnly(url):
         str : le domaine principal
     """
     try:
-
-        pathlessURL = urlparse(url)
-        
-        # partie https
-        scheme = pathlessURL.scheme
-
-        # partie github.com
-        netloc = pathlessURL.netloc
-        
-        return f"{scheme}://{netloc}"
-
+        parsed = urlparse(url)
+        return f"{parsed.scheme}://{parsed.netloc}"
     except Exception:
         return url
 
-# ========================================= #
-# ==== Vérification des liens externes ==== #
-# ========================================= #
+
+def MakeRequest(target):
+    """
+    Permet de faire une tentative de requête HEAD sur la cible puis GET en fallback.
+
+    Args :
+        target : l'URL ou le domaine à tester
+
+    Returns :
+        True si la cible répond avec un status < 400 sinon False
+    """
+    try:
+        req = request.Request(target, method="HEAD")
+        with request.urlopen(req, timeout=5) as response:
+            if response.status < 400:
+                return True
+    except Exception:
+        pass
+
+    try:
+        with request.urlopen(target, timeout=5) as response:
+            return response.status < 400
+    except Exception:
+        return False
+
+
 def ExternalVerification(url):
     """
-    Permet de vérifier si un lien externe est accessible
+    Permet de vérifier si un lien externe est accessible.
+    
+    En mode FAST_CHECK, seul le domaine est testé
 
     Args :
         url : l'URL à tester
@@ -178,132 +391,99 @@ def ExternalVerification(url):
     Returns :
         bool : True si l'URL répond sinon False
     """
-    
-    global domain_cache
+    domain = GetDomainOnly(url)
 
-    # Si ignore link n'est pas vide ou Fast Check est activé alors on récupère le domaine
-    if ignored_links or FAST_CHECK:
-        domain = GetDomainOnly(url)
-
-    #### Si le domaine est dans la liste des liens ignorés il est automatiquement validé ####
-    if ignored_links and (domain in ignored_links):
+    # Si le domaine est dans la liste des liens ignorés
+    if domain in ignored_links:
+        
+        # Automatiquement validé
         return True
-    
-    # Si FAST_CHECK est activé
+
     if FAST_CHECK:
-        try:
-            
-            # Si le domaine est déjà dans le cache on retourne le résultat mis en cache
-            if domain in domain_cache:
-                return domain_cache[domain]
-            
-            # Sinon on teste le domaine et on le met en cache
-            result = TestDomain(domain)
-            domain_cache[domain] = result
-            return result
-            
-        except Exception:
-            pass
-    else:
-        # Sinon on teste l'URL complète
-        return TestFullUrl(url)
+        # Si le domaine est déjà dans le cache on retourne le résultat mis en cache
+        if domain not in domain_cache:
+            domain_cache[domain] = MakeRequest(domain)
+        return domain_cache[domain]
 
-def TestDomain(domain):
+    # Mode complet
+    return MakeRequest(url)
+
+
+def MailVerification(url):
     """
-    Test si un domaine est accessible (sans le path, par exemple https://google.com et pas https://google.com/search etc)
+    Permet de vérifier le format d'un lien mailto
 
     Args :
-        domain : l'URL du domaine à tester
+        url : lien mailto
 
     Returns :
-        bool : True si le domaine répond sinon False
+        True si format correct sinon False
     """
-    try:
-        # On essaye d'abord une requête HEAD pour économe du temps et du bandwidth
-        req = request.Request(domain, method="HEAD")
+    address = url[len('mailto:'):].split('?', 1)[0].strip()
+    return bool(re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', address))
 
-        with request.urlopen(req, timeout=5) as response:
-            if response.status < 400:
-                return True
-            
-    except Exception:
-        try:
 
-            # Sinon requête GET
-            with request.urlopen(domain, timeout=5) as response:
-                return response.status < 400
-        except Exception:
-            return False
-    return False
-
-def TestFullUrl(url):
+# =================================== #
+# ==== Dispatch par type de lien ==== #
+# =================================== #
+def VerifyLink(url, source_file):
     """
-    Test si un URL full est accessible
+    Détermine le type de lien et appelle le vérificateur approprié.
 
     Args :
-        url : l'URL full à tester
+        url : le lien à vérifier
+        source_file : le fichier markdown d'origine
 
     Returns :
-        bool : True si l'URL répond sinon False
+        tuple(bool, str) : (résultat, portée) où portée vaut 'INTERNAL', 'EXTERNAL' ou 'SKIP'
     """
-    try:
+    # Ancre seule ou lien ignoré
+    if url.startswith('#') or url in ignored_links:
+        
+        # Pas de vérification
+        return True, "SKIP"
 
-        # On essaye d'abord une requête HEAD pour économe du temps et du bandwidth
-        req = request.Request(url, method="HEAD")
-        with request.urlopen(req, timeout=5) as response:
-            if response.status < 400:
-                return True
-    except Exception:
-        try:
-            # Sinon requête GET
-            with request.urlopen(url, timeout=5) as response:
-                return response.status < 400
-        except Exception:
-            return False
-    return False
-    
+    if url.startswith(('http://', 'https://')):
+        return ExternalVerification(url), "EXTERNAL"
 
-def run():
+    if url.startswith('mailto:'):
+        return MailVerification(url), "EXTERNAL"
 
+    # Tout le reste est traité comme lien interne
+    return InternalVerification(url, source_file), "INTERNAL"
+
+
+def run(check_type=CHECK_LINK_TYPE):
 
     # On récupère tous les fichiers markdown
     allMd = FindAllMarkdown(".")
 
-
-    erreurs = False;
+    erreurs = False
 
     # On récupère tous les liens
     allLiens = []
     for md in allMd:
         allLiens.extend(GetLinks(md))
 
-    # Nombre total de liens
     nbLiensTotal = len(allLiens)
-    nbLiensTraites = 0
-
-    print(f"Mode de vérification : {'FAST_CHECK (domaines seulement)' if FAST_CHECK else 'COMPLET (chaque URL)'}")
-
+    
+    print(f"Total liens trouvés : {nbLiensTotal} | Mode de vérification : {check_type.value} | Vérification sur les domaines uniquement : {FAST_CHECK}")
+    
     # On vérifie chaque lien
-    for url, display_text, source_file in allLiens:
-        nbLiensTraites += 1
+    for nbLiensTraites, (url, display_text, source_file) in enumerate(allLiens, start=1):
 
-        # Affiche ✓ si le lien fonctionne sinon X
-        if url.startswith("http"):
-            result = ExternalVerification(url)
-            cacheInfo = ""
-            if FAST_CHECK:
-                try:
-                    pathlessURL = urlparse(url)
-                    scheme = pathlessURL.scheme
-                    netloc = pathlessURL.netloc
-                    domain = f"{scheme}://{netloc}"
+        result, portee = VerifyLink(url, source_file)
 
-                    cacheInfo = " (cached)" if domain in domain_cache and nbLiensTraites > 1 else " (nouveau domaine)"
-                except:
-                    pass
-            print(f"{'✓' if result else 'X'} [{nbLiensTraites}/{nbLiensTotal}] {url}{cacheInfo}")
+        # On filtre selon le mode choisi
+        if portee == "SKIP":
+            continue
+        if check_type == CheckLinkType.INTERNAL and portee != "INTERNAL":
+            continue
+        if check_type == CheckLinkType.EXTERNAL and portee != "EXTERNAL":
+            continue
 
-        else:
-            result = InternalVerification(url, source_file)
-            print(f"{'✓' if result else 'X'} [{nbLiensTraites}/{nbLiensTotal}] {url}")
+        if not result:
+            print(f"X [{nbLiensTraites}/{nbLiensTotal}] [{portee}] {url} ({source_file})")
+            erreurs = True
 
+    return erreurs
