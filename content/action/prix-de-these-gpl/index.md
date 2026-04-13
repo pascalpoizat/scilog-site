@@ -15,10 +15,12 @@ Les articles récents relatifs au prix de thèse sont les suivants :
 
 [L'archive des articles de ce prix de thèse (jusqu'à l'édition 2025 pour les thèses soutenues en 2024) est disponible ici.](https://gdr-gpl.cnrs.fr/?page_id=376)
 
-**Lauréats pour les soutenances de 2020 à 2023.**
+**Lauréats pour les soutenances de 2020 à 2024.**
 
-Année| Lauréat| Thèse  
+Année de soutenance| Lauréat| Thèse  
 ---|---|---  
+**2024**|  Mickaël LAURENT (prix)  | [Inférence de types polymorphes pour des langages dynamiques : reconstruction de types pour des systèmes combinant polymorphisme paramétrique, surcharge et sous-typage.](https://theses.hal.science/tel-04972652)  Université Paris Cité / IRIF sous la direction de Giuseppe Castagna <hr>
+| | Anouck CHAN (accessit) | [Co-conception d'un produit et de son système industriel : Une approche ingénierie des exigences pour l’aérospatial.](https://depozit.isae.fr/theses/2024/2024_Chan_Anouck.pdf) Toulouse ISAE / ONERA sous la direction de Thomas Polacsek et Stéphanie Roussel <hr>
 **2023**|  Xavier DENIS (prix)  | [Deductive Verification of Rust Programs.](https://theses.hal.science/tel-04517581)  Université Paris Saclay / LMF sous la direction de Claude Marché <hr>
 | | Sylvain GUERIN (accessit) | [FML : un langage de fédération de modèles pour l'interopérabilité sémantique de sources d'information hétérogènes.](https://theses.hal.science/tel-04555528v1) ENSTA Bretagne / Lab-STICC sous la direction d'Antoine Beugnard et Joël Champeau <hr> 
 | | Youcef REMIL (accessit)| [A Data Mining Perspective on Explainable AIOps with Applications to Software Maintenance.](https://theses.hal.science/tel-04391281v1) Université de Lyon / INSA Lyon sous la direction de Jean-François Boulicaut  <hr>
