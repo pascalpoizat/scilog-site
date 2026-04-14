@@ -75,7 +75,7 @@ Projets
 
 ## Précédents évènements
 
-- [17/03/2026 - soirée Jumeaux Numériques](./20260317/20260317_soiree_JJN)
+- [17/03/2026 - soirée Jumeaux Numériques](./20260317_soiree_jjn/)
 
 - [11/12/2025 - 2ème journée Jumeaux Numériques](https://gdrgpl.myxwiki.org/xwiki/bin/view/Main/GTs/action%20Jumeaux%20Num%C3%A9riques/)
 

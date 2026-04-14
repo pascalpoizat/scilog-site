@@ -4,7 +4,7 @@ type: page
 date: "2026-03-17T17:00:00Z"
 draft: false
 ---
-# Soirée Jumeaux Numérique
+
 ## Contact
 * Jannik Laval (jannik.laval@univ-lyon2.fr),
 * Antoine Beugnard (antoine.beugnard@imt-atlantique.fr),
